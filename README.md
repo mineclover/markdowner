@@ -80,3 +80,10 @@ npm i
 ## Support
 
 Support me by simply starring this repository! ⭐
+
+# browser-rendering cloudflare
+
+https://developers.cloudflare.com/browser-rendering/platform/limits/
+
+1. node.js에서 렌더링
+2. 퍼펫티어로 열어서 렌더링

@@ -1,4 +1,4 @@
-import puppeteer from '@cloudflare/puppeteer';
+import puppeteer, { Browser as PuppeteerBrowser, Page as PuppeteerPage } from '@cloudflare/puppeteer';
 import { Tweet } from 'react-tweet/api';
 import { html } from './response';
 
@@ -28,7 +28,7 @@ export class Browser {
 	env: Env;
 	keptAliveInSeconds: number;
 	storage: DurableObjectStorage;
-	browser: puppeteer.Browser | undefined;
+	browser: PuppeteerBrowser | undefined;
 	request: Request | undefined;
 	llmFilter: boolean;
 	token = '';
@@ -83,7 +83,7 @@ export class Browser {
 	async ensureBrowser() {
 		let retries = 3;
 		while (retries) {
-			if (!this.browser || !this.browser.isConnected()) {
+			if (!this.browser || !this.browser.connected) {
 				try {
 					this.browser = await puppeteer.launch(this.env.MYBROWSER);
 					return true;
@@ -151,7 +151,7 @@ export class Browser {
 		}
 	}
 
-	async extractLinks(page: puppeteer.Page, baseUrl: string) {
+	async extractLinks(page: PuppeteerPage, baseUrl: string) {
 		return await page.evaluate((baseUrl) => {
 			return Array.from(document.querySelectorAll('a'))
 				.map((link) => (link as { href: string }).href)
@@ -240,6 +240,7 @@ export class Browser {
 				}
 
 				let md = cached ?? (await classThis.fetchAndProcessPage(url, enableDetailedResponse));
+				console.log('🚀 ~ Browser ~ urls.map ~ md:', md);
 
 				if (this.llmFilter && !cached) {
 					for (let i = 0; i < 60; i++) await env.RATELIMITER.limit({ key: ip });
@@ -260,7 +261,7 @@ Output:\`\`\`markdown\n`,
 
 				await env.MD_CACHE.put(id, md, { expirationTtl: 3600 });
 				return { url, md };
-			}),
+			})
 		);
 	}
 
@@ -290,7 +291,6 @@ Output:\`\`\`markdown\n`,
 						keepClasses: true,
 						nbTopCandidates: 500,
 					});
-
 					// Parse the article content
 					const article = reader.parse();
 
@@ -298,21 +298,26 @@ Output:\`\`\`markdown\n`,
 					const turndownService = new TurndownService();
 
 					let documentWithoutScripts = document.cloneNode(true);
-					documentWithoutScripts.querySelectorAll('script').forEach((browserItem: any) => browserItem.remove());
-					documentWithoutScripts.querySelectorAll('style').forEach((browserItem: any) => browserItem.remove());
-					documentWithoutScripts.querySelectorAll('iframe').forEach((browserItem: any) => browserItem.remove());
-					documentWithoutScripts.querySelectorAll('noscript').forEach((browserItem: any) => browserItem.remove());
+					documentWithoutScripts.querySelectorAll('script').forEach((browserItem: Element) => browserItem.remove());
+					documentWithoutScripts.querySelectorAll('style').forEach((browserItem: Element) => browserItem.remove());
+					documentWithoutScripts.querySelectorAll('iframe').forEach((browserItem: Element) => browserItem.remove());
+					documentWithoutScripts.querySelectorAll('noscript').forEach((browserItem: Element) => browserItem.remove());
 
 					// article content to Markdown
-					const markdown = turndownService.turndown(enableDetailedResponse ? documentWithoutScripts : article.content);
+					// const markdown = turndownService.turndown(enableDetailedResponse ? documentWithoutScripts : article.title + article.content);
+					// const markdown = article.title
+					// const markdown = article.content
+					const markdown = article.textContent;
 
 					return markdown;
 				}) as unknown as string;
 
 				return md;
 			}
+
 			return extractArticleMarkdown();
 		}, enableDetailedResponse);
+
 		await page.close();
 		return md;
 	}

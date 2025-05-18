@@ -13,11 +13,12 @@ class_name = "Browser"
 
 [[migrations]]
 tag = "v1" # Should be unique for each entry
-new_classes = ["Browser"] # Array of new classes
+new_sqlite_classes = ["Browser"] # Array of new classes
 
 [[kv_namespaces]]
 binding= "MD_CACHE"
-id = "3186489f943d409a9b772d876a58a73e"
+id = "ef25bec685424935b6815b764c52c4bb"
+preview_id = "580e8d8d296842438241474a59b62e8c"
 
 [[unsafe.bindings]]
 name = "RATELIMITER"

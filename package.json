@@ -4,13 +4,17 @@
 	"private": true,
 	"scripts": {
 		"deploy": "wrangler deploy",
-		"dev": "wrangler dev",
+		"dev": "wrangler dev --remote",
 		"start": "wrangler dev",
 		"cf-typegen": "wrangler types"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20240502.0",
-		"typescript": "^5.0.4",
-		"wrangler": "^3.53.1"
+		"@cloudflare/puppeteer": "^1.0.2",
+		"@cloudflare/workers-types": "^4.20250517.0",
+		"typescript": "^5.8.3",
+		"wrangler": "^4.15.2"
+	},
+	"dependencies": {
+		"react-tweet": "^3.2.2"
 	}
 }
